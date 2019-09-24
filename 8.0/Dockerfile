@@ -12,12 +12,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
-FROM oraclelinux:7-slim
+FROM amazoncorretto:11 as buildImage
+# FROM oraclelinux:7-slim
+
+ENV MYSQL_ROOT_PASSWORD='flashtools'
 
 ARG MYSQL_SERVER_PACKAGE=mysql-community-server-minimal-8.0.17
 ARG MYSQL_SHELL_PACKAGE=mysql-shell-8.0.17
 
 # Install server
+RUN yum install -y yum-utils
 RUN yum install -y https://repo.mysql.com/mysql-community-minimal-release-el7.rpm \
       https://repo.mysql.com/mysql-community-release-el7.rpm \
   && yum-config-manager --enable mysql80-server-minimal \
