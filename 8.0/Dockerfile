@@ -15,8 +15,6 @@
 FROM amazoncorretto:11 as buildImage
 # FROM oraclelinux:7-slim
 
-ENV MYSQL_ROOT_PASSWORD='flashtools'
-
 ARG MYSQL_SERVER_PACKAGE=mysql-community-server-minimal-8.0.17
 ARG MYSQL_SHELL_PACKAGE=mysql-shell-8.0.17
 
@@ -36,6 +34,9 @@ VOLUME /var/lib/mysql
 
 COPY docker-entrypoint.sh /entrypoint.sh
 COPY healthcheck.sh /healthcheck.sh
+
+# RUN ./entrypoint.sh mysqld & MYSQL_PWD=flashtools mysql -u root -e 'select now();'
+
 ENTRYPOINT ["/entrypoint.sh"]
 HEALTHCHECK CMD /healthcheck.sh
 EXPOSE 3306 33060

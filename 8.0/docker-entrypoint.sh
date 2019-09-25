@@ -63,12 +63,12 @@ if [ "$1" = 'mysqld' ]; then
 				exit 1
 			fi
 		fi
-		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-			echo >&2 '[Entrypoint] No password option specified for new database.'
-			echo >&2 '[Entrypoint]   A random onetime password will be generated.'
-			MYSQL_RANDOM_ROOT_PASSWORD=true
-			MYSQL_ONETIME_PASSWORD=true
-		fi
+		# if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
+		# 	echo >&2 '[Entrypoint] No password option specified for new database.'
+		# 	echo >&2 '[Entrypoint]   A random onetime password will be generated.'
+		# 	MYSQL_RANDOM_ROOT_PASSWORD=true
+		# 	MYSQL_ONETIME_PASSWORD=true
+		# fi
 		mkdir -p "$DATADIR"
 		chown -R mysql:mysql "$DATADIR"
 
@@ -104,8 +104,9 @@ if [ "$1" = 'mysqld' ]; then
 		mysql_tzinfo_to_sql /usr/share/zoneinfo | "${mysql[@]}" mysql
 		
 		if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-			MYSQL_ROOT_PASSWORD="$(pwmake 128)"
-			echo "[Entrypoint] GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
+			# MYSQL_ROOT_PASSWORD="$(pwmake 128)"
+			MYSQL_ROOT_PASSWORD="flashtools"
+			# echo "[Entrypoint] GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
 		fi
 		if [ -z "$MYSQL_ROOT_HOST" ]; then
 			ROOTCREATE="ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
@@ -161,28 +162,28 @@ EOF
 		unset PASSFILE
 		echo "[Entrypoint] Server shut down"
 
-		# This needs to be done outside the normal init, since mysqladmin shutdown will not work after
-		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
-			if [ -z "yes" ]; then
-				echo "[Entrypoint] User expiration is only supported in MySQL 5.6+"
-			else
-				echo "[Entrypoint] Setting root user as expired. Password will need to be changed before database can be used."
-				SQL=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
-				install /dev/null -m0600 -omysql -gmysql "$SQL"
-				if [ ! -z "$MYSQL_ROOT_HOST" ]; then
-					cat << EOF > "$SQL"
-ALTER USER 'root'@'${MYSQL_ROOT_HOST}' PASSWORD EXPIRE;
-ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
-EOF
-				else
-					cat << EOF > "$SQL"
-ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
-EOF
-				fi
-				set -- "$@" --init-file="$SQL"
-				unset SQL
-			fi
-		fi
+# 		# This needs to be done outside the normal init, since mysqladmin shutdown will not work after
+# 		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
+# 			if [ -z "yes" ]; then
+# 				echo "[Entrypoint] User expiration is only supported in MySQL 5.6+"
+# 			else
+# 				echo "[Entrypoint] Setting root user as expired. Password will need to be changed before database can be used."
+# 				SQL=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
+# 				install /dev/null -m0600 -omysql -gmysql "$SQL"
+# 				if [ ! -z "$MYSQL_ROOT_HOST" ]; then
+# 					cat << EOF > "$SQL"
+# ALTER USER 'root'@'${MYSQL_ROOT_HOST}' PASSWORD EXPIRE;
+# ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
+# EOF
+# 				else
+# 					cat << EOF > "$SQL"
+# ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
+# EOF
+# 				fi
+# 				set -- "$@" --init-file="$SQL"
+# 				unset SQL
+# 			fi
+# 		fi
 
 		echo
 		echo '[Entrypoint] MySQL init process done. Ready for start up.'
